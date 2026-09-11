@@ -12,7 +12,6 @@
 ### Team Members
 - Team Lead: [Fathima Jumana kc] - [KAHM Unity Women's College,Manjeri]
 - Member 2: [Fathimath Zuhra k] - [KAHM Unity Women's College,Manjeri]
-- Member 3: [Name] - [College]
 
 ### Project Description
 [This project is a useless and intentionally confusing calculator designed for absolutely no practical purpose. Unlike a normal calculator, our calculator may give incorrect answers, unexpected results, random messages, and confusing calculations.The main purpose of this project is not to solve mathematical problems, but to create new problems that never existed. It is designed purely for entertainment and to make users question their mathematical abilities.]
@@ -52,7 +51,6 @@ For Software:
 
 <img width="1875" height="594" alt="image" src="https://github.com/user-attachments/assets/90da08dc-4fc7-49c1-a4d1-d7b3c165b4ea" />
 
-
 *The picture shows a humorous calculator dashboard with buttons and status panels indicating blocked correct answers, severe division conditions, and an unusual 98% allocation to graphics. It presents itself as a deliberately inaccurate calculator, with playful messages, fake certifications, and a 0% accuracy claim.*
 
 # Diagrams
@@ -70,7 +68,6 @@ For Software:
 ## Team Contributions
 - [Fathima jumana kc]: [creating code]
 - [Fathimath Zuhra k]: [implementing code]
-- [Name 3]: [Specific contributions]
 
 ---
 Made with ❤️ at TinkerHub Useless Projects 
