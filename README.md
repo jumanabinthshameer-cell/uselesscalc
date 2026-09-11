@@ -2,83 +2,65 @@
 
 
 
-# [Project Name] 🎯
+# [useless calculator] 🎯
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: [Zuhra & Jumana]
 
 
 ### Team Members
-- Team Lead: [Name] - [College]
-- Member 2: [Name] - [College]
+- Team Lead: [Fathima Jumana kc] - [KAHM Unity Women's College,Manjeri]
+- Member 2: [Fathimath Zuhra k] - [KAHM Unity Women's College,Manjeri]
 - Member 3: [Name] - [College]
 
 ### Project Description
-[2-3 lines about what your project does]
+[This project is a useless and intentionally confusing calculator designed for absolutely no practical purpose. Unlike a normal calculator, our calculator may give incorrect answers, unexpected results, random messages, and confusing calculations.The main purpose of this project is not to solve mathematical problems, but to create new problems that never existed. It is designed purely for entertainment and to make users question their mathematical abilities.]
 
 ### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
+[Many people use calculators to get correct answers quickly. This creates a serious problem — they actually get the answer they asked for! Our project solves this completely unnecessary problem by creating a calculator that gives incorrect, confusing, and sometimes completely random answers. It may show wrong results, strange calculations, or unexpected messages, making users question their own mathematical skills.]
 
 ### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+[Our solution is a calculator that does everything a normal calculator should NOT do. 
+It takes user input and turns simple calculations into confusing, incorrect, and sometimes completely unexpected results. The goal is not accuracy, productivity, or world peace — it is simply to waste a few minutes of someone's life while making them laugh.]
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
-
-For Hardware:
-- [List main components]
-- [List specifications]
-- [List tools required]
+- [html]
+- [none]
+- [none]
+- [visual studio code, web browser, github.]
 
 ### Implementation
 For Software:
 # Installation
-[commands]
+[git clone <your-github-repository-link>
+cd uselesscalc]
 
 # Run
-[commands]
+[start index.html]
 
 ### Project Documentation
 For Software:
 
 # Screenshots (Add at least 3)
-![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
+<img width="1151" height="950" alt="image" src="https://github.com/user-attachments/assets/9d216c7e-d675-4e80-afa6-ef300cb240c3" />
 
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+*The main interface of the Useless Calculator, featuring scientific functions,  number and operation buttons, and a display currently showing 0.*
+
+<img width="1854" height="953" alt="image" src="https://github.com/user-attachments/assets/69496350-638b-46ba-9497-6ad652c883ac" />
+
+*A fun, satirical calculator interface that turns simple calculations into a chaotic experience, with **0% accuracy, “severe division conditions,” and plenty of humorous features**.*
+
+<img width="382" height="660" alt="image" src="https://github.com/user-attachments/assets/24322e3a-8472-4ef2-abff-95d2937414e9" />
+
+*A dark-themedCalcGPT calculator assistant interface showing a chat area, calculation history, and stats such as 26 calculations, 0 correct answers, 26 problems created, and 8 achievements.*
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
 *Add caption explaining your workflow*
-
-For Hardware:
-
-# Schematic & Circuit
-![Circuit](Add your circuit diagram here)
-*Add caption explaining connections*
-
-![Schematic](Add your schematic diagram here)
-*Add caption explaining the schematic*
-
-# Build Photos
-![Components](Add photo of your components here)
-*List out all components shown*
-
-![Build](Add photos of build process here)
-*Explain the build steps*
-
-![Final](Add photo of final product here)
-*Explain the final build*
 
 ### Project Demo
 # Video
@@ -89,8 +71,8 @@ For Hardware:
 [Add any extra demo materials/links]
 
 ## Team Contributions
-- [Name 1]: [Specific contributions]
-- [Name 2]: [Specific contributions]
+- [Fathima jumana kc]: [creating code]
+- [Fathimath Zuhra k]: [implementing code]
 - [Name 3]: [Specific contributions]
 
 ---
