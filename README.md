@@ -46,17 +46,14 @@ For Software:
 
 # Screenshots (Add at least 3)
 
-<img width="1151" height="950" alt="image" src="https://github.com/user-attachments/assets/9d216c7e-d675-4e80-afa6-ef300cb240c3" />
+<img width="1856" height="955" alt="image" src="https://github.com/user-attachments/assets/b9aa8d49-190c-447c-9997-443f1da5fa2d" />
 
-*The main interface of the Useless Calculator, featuring scientific functions,  number and operation buttons, and a display currently showing 0.*
+*The picture shows a futuristic **“Useless Calculator”** interface with a scientific calculator, colorful buttons, calculation history, and a humorous AI assistant panel. The screen uses a dark, high-tech design with blue and orange accents and playful labels suggesting that the calculator is intentionally useless.*
 
-<img width="1854" height="953" alt="image" src="https://github.com/user-attachments/assets/69496350-638b-46ba-9497-6ad652c883ac" />
+<img width="1875" height="594" alt="image" src="https://github.com/user-attachments/assets/90da08dc-4fc7-49c1-a4d1-d7b3c165b4ea" />
 
-*A fun, satirical calculator interface that turns simple calculations into a chaotic experience, with **0% accuracy, “severe division conditions,” and plenty of humorous features**.*
 
-<img width="382" height="660" alt="image" src="https://github.com/user-attachments/assets/24322e3a-8472-4ef2-abff-95d2937414e9" />
-
-*A dark-themedCalcGPT calculator assistant interface showing a chat area, calculation history, and stats such as 26 calculations, 0 correct answers, 26 problems created, and 8 achievements.*
+*The picture shows a humorous calculator dashboard with buttons and status panels indicating blocked correct answers, severe division conditions, and an unusual 98% allocation to graphics. It presents itself as a deliberately inaccurate calculator, with playful messages, fake certifications, and a 0% accuracy claim.*
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
