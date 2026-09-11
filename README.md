@@ -58,7 +58,7 @@ For Software:
 ### Project Demo
 # Video
 https://drive.google.com/file/d/16xrWfvOqML_0ynxqMdG-LZxP9l7-CCrr/view?usp=sharing
-*How the calculator works*
+* See how the calculator works*
 
 # Additional Demos
 [Add any extra demo materials/links]
