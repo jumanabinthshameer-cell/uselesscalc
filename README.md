@@ -68,7 +68,6 @@ https://drive.google.com/file/d/16xrWfvOqML_0ynxqMdG-LZxP9l7-CCrr/view?usp=shari
 ## Team Contributions
 - Fathima jumana kc: creating code
 - Fathimath Zuhra k: implementing code
-- 
 ---
 Made with ❤️ at TinkerHub Useless Projects 
 
