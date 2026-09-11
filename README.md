@@ -26,8 +26,8 @@ It takes user input and turns simple calculations into confusing, incorrect, and
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- html
-- visual studio code, web browser, github.
+- language : html
+- tools : visual studio code, web browser, github.
 
 ### Implementation
 For Software:
