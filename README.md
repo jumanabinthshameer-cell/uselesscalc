@@ -2,16 +2,16 @@
 
 
 
-# [useless calculator] 🎯
+#useless calculator🎯
 
 
 ## Basic Details
-### Team Name: [Zuhra & Jumana]
+### Team Name: Zuhra & Jumana
 
 
 ### Team Members
-- Team Lead: [Fathima Jumana kc] - [KAHM Unity Women's College,Manjeri]
-- Member 2: [Fathimath Zuhra k] - [KAHM Unity Women's College,Manjeri]
+- Team Lead: Fathima Jumana kc - KAHM Unity Women's College,Manjeri
+- Member 2: Fathimath Zuhra k - KAHM Unity Women's College,Manjeri
 
 ### Project Description
 [This project is a useless and intentionally confusing calculator designed for absolutely no practical purpose. Unlike a normal calculator, our calculator may give incorrect answers, unexpected results, random messages, and confusing calculations.The main purpose of this project is not to solve mathematical problems, but to create new problems that never existed. It is designed purely for entertainment and to make users question their mathematical abilities.]
