@@ -14,31 +14,31 @@
 - Member 2: Fathimath Zuhra k - KAHM Unity Women's College,Manjeri
 
 ### Project Description
-[This project is a useless and intentionally confusing calculator designed for absolutely no practical purpose. Unlike a normal calculator, our calculator may give incorrect answers, unexpected results, random messages, and confusing calculations.The main purpose of this project is not to solve mathematical problems, but to create new problems that never existed. It is designed purely for entertainment and to make users question their mathematical abilities.]
+This project is a useless and intentionally confusing calculator designed for absolutely no practical purpose. Unlike a normal calculator, our calculator may give incorrect answers, unexpected results, random messages, and confusing calculations.The main purpose of this project is not to solve mathematical problems, but to create new problems that never existed. It is designed purely for entertainment and to make users question their mathematical abilities.
 
 ### The Problem (that doesn't exist)
-[Many people use calculators to get correct answers quickly. This creates a serious problem — they actually get the answer they asked for! Our project solves this completely unnecessary problem by creating a calculator that gives incorrect, confusing, and sometimes completely random answers. It may show wrong results, strange calculations, or unexpected messages, making users question their own mathematical skills.]
+Many people use calculators to get correct answers quickly. This creates a serious problem — they actually get the answer they asked for! Our project solves this completely unnecessary problem by creating a calculator that gives incorrect, confusing, and sometimes completely random answers. It may show wrong results, strange calculations, or unexpected messages, making users question their own mathematical skills.
 
 ### The Solution (that nobody asked for)
-[Our solution is a calculator that does everything a normal calculator should NOT do. 
-It takes user input and turns simple calculations into confusing, incorrect, and sometimes completely unexpected results. The goal is not accuracy, productivity, or world peace — it is simply to waste a few minutes of someone's life while making them laugh.]
+Our solution is a calculator that does everything a normal calculator should NOT do. 
+It takes user input and turns simple calculations into confusing, incorrect, and sometimes completely unexpected results. The goal is not accuracy, productivity, or world peace — it is simply to waste a few minutes of someone's life while making them laugh.
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [html]
-- [none]
-- [none]
-- [visual studio code, web browser, github.]
+- html
+- none
+- none
+- visual studio code, web browser, github.
 
 ### Implementation
 For Software:
 # Installation
-[git clone <your-github-repository-link>
-cd uselesscalc]
+git clone <your-github-repository-link>
+cd uselesscalc
 
 # Run
-[start index.html]
+start index.html
 
 ### Project Documentation
 For Software:
@@ -59,16 +59,16 @@ For Software:
 
 ### Project Demo
 # Video
-[Add your demo video link here]
-*Explain what the video demonstrates*
+https://drive.google.com/file/d/16xrWfvOqML_0ynxqMdG-LZxP9l7-CCrr/view?usp=sharing
+*How the calculator works*
 
 # Additional Demos
 [Add any extra demo materials/links]
 
 ## Team Contributions
-- [Fathima jumana kc]: [creating code]
-- [Fathimath Zuhra k]: [implementing code]
-
+- Fathima jumana kc: creating code
+- Fathimath Zuhra k: implementing code
+- 
 ---
 Made with ❤️ at TinkerHub Useless Projects 
 
