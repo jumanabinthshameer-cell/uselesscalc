@@ -1,1 +1,2042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#070b12" />
+<title>Useless Calculator™ — Backed by $14M, Accuracy Pending</title>
+<style>
+  :root {
+    --bg: #070b12;
+    --panel: rgba(20, 28, 40, 0.72);
+    --panel-solid: #131a26;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --text: #e8eef7;
+    --dim: #7f8ca3;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --neo1: #ff9f0a;
+    --neo2: #a3e635;
+    --danger: #f43f5e;
+    --corp: #facc15;
+    --shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  }
 
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: 14px;
+  }
+
+  #bgCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.55; }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 18px 18px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* ---------------- topbar ---------------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: rgba(13, 18, 28, 0.6);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+  .logo {
+    width: 42px; height: 42px; border-radius: 12px; flex: none;
+    display: grid; place-items: center;
+    font-size: 22px; font-weight: 800; color: #04121c;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 0 22px rgba(56, 189, 248, 0.5);
+  }
+  .brand-name {
+    font-size: 17px; font-weight: 700; letter-spacing: 0.06em;
+    background: linear-gradient(90deg, #e8eef7, #9fb6d0);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .brand-name .tm { font-size: 11px; vertical-align: super; color: var(--accent); -webkit-text-fill-color: var(--accent); }
+  .tagline { font-size: 11px; color: var(--dim); letter-spacing: 0.03em; margin-top: 2px; }
+
+  .status-cluster { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .led {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; letter-spacing: 0.08em; font-weight: 600;
+    padding: 5px 10px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line);
+    color: var(--dim);
+  }
+  .led .mini { color: var(--dim); font-weight: 400; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #334155; }
+  .dot.on { background: var(--neo2); box-shadow: 0 0 8px var(--neo2); animation: blink 2.2s infinite; }
+  .dot.off { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+  .dot.warn { background: var(--neo1); box-shadow: 0 0 8px var(--neo1); animation: blink 0.6s infinite; }
+  @keyframes blink { 50% { opacity: 0.35; } }
+
+  .mode-switches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .switch {
+    font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+    color: var(--text); background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 12px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .switch:hover { background: rgba(255, 255, 255, 0.12); }
+  .switch.on { background: rgba(250, 204, 21, 0.14); border-color: rgba(250, 204, 21, 0.6); color: var(--corp); box-shadow: 0 0 14px rgba(250, 204, 21, 0.25); }
+  .switch.on.chaos-on { background: rgba(244, 63, 94, 0.16); border-color: rgba(244, 63, 94, 0.65); color: #ff8fa3; box-shadow: 0 0 14px rgba(244, 63, 94, 0.3); }
+  .switch.secret { opacity: 0.45; }
+
+  /* ---------------- layout ---------------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+  }
+  .panel > .head {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 12px 16px 0;
+  }
+  .head .title { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: var(--dim); }
+  .head .status-chip {
+    font-size: 9px; letter-spacing: 0.08em; font-weight: 700;
+    padding: 4px 9px; border-radius: 999px;
+    color: var(--accent); background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+  .head .status-chip.busy { color: var(--neo1); background: rgba(255, 159, 10, 0.1); border-color: rgba(255, 159, 10, 0.35); }
+  .head .status-chip.done { color: var(--neo2); background: rgba(163, 230, 53, 0.1); border-color: rgba(163, 230, 53, 0.35); }
+
+  /* ---------------- calculator ---------------- */
+  .calc-panel { padding: 0 0 14px; }
+
+  .display {
+    margin: 14px 16px 12px;
+    padding: 16px 18px 14px;
+    background: radial-gradient(120% 140% at 50% 0%, #0d1521, #0a0f18 70%);
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.6);
+    text-align: right;
+    min-height: 148px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .display.glowing { border-color: rgba(56, 189, 248, 0.5); box-shadow: inset 0 10px 30px rgba(0,0,0,0.6), 0 0 26px rgba(56, 189, 248, 0.22); }
+  .d-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .mode-tag {
+    font-size: 9px; letter-spacing: 0.14em; font-weight: 700;
+    color: var(--accent); padding: 3px 8px; border-radius: 6px;
+    background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25);
+  }
+  .mode-tag.classified { color: var(--danger); background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.4); }
+  .expr {
+    color: var(--dim); font-size: 14px;
+    direction: rtl; unicode-bidi: plaintext;
+    overflow-wrap: anywhere;
+    max-height: 3.4em; overflow: hidden;
+    flex: 1; text-align: left;
+  }
+  .d-main {
+    font-size: clamp(34px, 8vw, 52px);
+    font-weight: 600; line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    min-height: 1.2em;
+    transition: font-size 0.2s ease;
+    padding-top: 8px;
+  }
+  .d-main.mid { font-size: clamp(27px, 6vw, 38px); }
+  .d-main.small { font-size: clamp(21px, 4.6vw, 28px); }
+  .d-main.tiny { font-size: clamp(14px, 3vw, 18px); }
+  .d-main.doomed { color: var(--danger); }
+  .d-main.pulse { animation: pulze 0.4s ease; }
+  @keyframes pulze { 0% { transform: scale(0.92); opacity: 0.5; } 60% { transform: scale(1.03); } 100% { transform: scale(1); opacity: 1; } }
+  .d-conf { font-size: 11px; color: var(--accent2); min-height: 15px; margin-top: 6px; letter-spacing: 0.02em; }
+  .d-note { font-size: 12px; color: var(--dim); min-height: 17px; margin-top: 4px; }
+  .d-note.warn { color: var(--neo1); }
+  .d-note.bad { color: var(--danger); }
+  .display.error { border-color: rgba(244, 63, 94, 0.6); animation: shake 0.4s ease; }
+  @keyframes shake { 20% { transform: translateX(-7px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+  .display .shimmer { display: none; }
+  .display.loading .shimmer {
+    display: block; position: absolute; inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(56,189,248,0.12) 50%, transparent 70%);
+    animation: shimmer 1.1s linear infinite;
+  }
+  @keyframes shimmer { from { background-position: -400px 0; } to { background-position: 400px 0; } }
+  .display.loading { background-size: 400px 100%; }
+
+  /* keys */
+  .keys { padding: 0 16px; display: flex; flex-direction: column; gap: 9px; }
+  .fn-keys, .main-keys { display: grid; gap: 9px; }
+  .fn-keys { grid-template-columns: repeat(6, 1fr); }
+  .main-keys { grid-template-columns: repeat(4, 1fr); }
+
+  .key {
+    font: inherit;
+    font-size: clamp(17px, 4.6vw, 22px);
+    font-weight: 500;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    height: 60px;
+    cursor: pointer;
+    transition: background 0.12s ease, transform 0.05s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    font-variant-numeric: tabular-nums;
+  }
+  .key:hover { background: rgba(255, 255, 255, 0.09); border-color: var(--line-strong); }
+  .key:active { transform: translateY(2px); background: rgba(255, 255, 255, 0.14); }
+  .key:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .key.fn { font-size: 13px; color: var(--dim); letter-spacing: 0.03em; }
+  .key.fn:hover { color: var(--text); }
+  .key.op { color: var(--neo1); border-color: rgba(255, 159, 10, 0.22); font-weight: 600; }
+  .key.op:hover { background: rgba(255, 159, 10, 0.12); }
+  .key.eq {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #04121c; font-weight: 700; border: none;
+    grid-column: span 4;
+    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+  }
+  .key.eq:hover { filter: brightness(1.1); }
+  .key.eq:active { transform: translateY(2px); }
+  .key.ac { color: #ff96a8; border-color: rgba(244, 63, 94, 0.3); }
+  .key.ac:hover { background: rgba(244, 63, 94, 0.14); }
+  .key.zero { grid-column: span 2; text-align: left; padding-left: 22px; }
+
+  body.classified .display { border-color: rgba(244, 63, 94, 0.5); box-shadow: inset 0 10px 30px rgba(0,0,0,0.6), 0 0 30px rgba(244, 63, 94, 0.3); }
+  body.classified .d-main, body.classified .d-conf { color: #ff5e7c; }
+  body.classified .keys { filter: grayscale(0.9) brightness(0.9); }
+
+  /* action bar */
+  .actionbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px 0; }
+  .act {
+    font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+    color: var(--accent);
+    background: rgba(56, 189, 248, 0.07);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 10px;
+    padding: 9px 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .act:hover { background: rgba(56, 189, 248, 0.16); box-shadow: 0 0 14px rgba(56, 189, 248, 0.25); }
+  .act.big { flex: 1 1 100%; padding: 13px; font-size: 13px; background: rgba(56, 189, 248, 0.1); }
+  .act:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* widgets row */
+  .widget-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  .widget { padding: 14px 16px; }
+  .widget .w-label { font-size: 10px; letter-spacing: 0.14em; font-weight: 700; color: var(--dim); margin-bottom: 9px; }
+  .widget .w-value { font-size: 13px; line-height: 1.5; color: var(--text); }
+  .bar { height: 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.06); overflow: hidden; margin-top: 10px; }
+  .bar > i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--neo1), var(--accent)); }
+  .bar > i.good { background: linear-gradient(90deg, var(--neo2), var(--accent)); }
+
+  /* ---------------- side column ---------------- */
+  .side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+  /* CalcGPT */
+  .calcgpt { display: flex; flex-direction: column; height: 380px; }
+  .calcgpt .chat { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
+  .chat .msg {
+    max-width: 86%; padding: 9px 12px; border-radius: 12px; font-size: 13px; line-height: 1.5;
+    animation: rise 0.25s ease;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(5px); } }
+  .chat .user { align-self: flex-end; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.3); }
+  .chat .ai { align-self: flex-start; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); }
+  .chat .ai.calc { border-left: 3px solid var(--accent); }
+  .chat .typing { color: var(--dim); font-size: 12px; }
+  .chat .typing::after { content: "…"; animation: dots 1.2s infinite; }
+  @keyframes dots { 33% { content: ".."; } 66% { content: "..."; } }
+  .chat-input { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
+  .chat-input input {
+    flex: 1; font: inherit; font-size: 13px; color: var(--text);
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 12px; outline: none;
+  }
+  .chat-input input:focus { border-color: var(--accent); }
+  .chat-input button {
+    font: inherit; font-weight: 700; font-size: 12px; color: #04121c;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 10px; padding: 0 16px; cursor: pointer;
+  }
+  .sugs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 10px; }
+  .sug {
+    font: inherit; font-size: 11px; color: var(--dim);
+    background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px 10px; cursor: pointer; transition: all 0.12s;
+  }
+  .sug:hover { color: var(--accent); border-color: rgba(56, 189, 248, 0.4); }
+
+  /* history */
+  .history { max-height: 340px; display: flex; flex-direction: column; }
+  .hist-list { flex: 1; overflow-y: auto; padding: 6px 12px 12px; }
+  .hist-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 9px; cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 12px;
+  }
+  .hist-item:hover { background: rgba(255, 255, 255, 0.05); }
+  .hist-item .h-expr { color: var(--dim); overflow-wrap: anywhere; }
+  .hist-item .h-res { color: var(--text); font-weight: 600; white-space: nowrap; }
+  .hist-foot { padding: 8px 12px 10px; display: flex; justify-content: space-between; }
+  .link-btn {
+    font: inherit; font-size: 11px; color: var(--dim); background: none;
+    border: none; cursor: pointer; text-decoration: underline dotted;
+  }
+  .link-btn:hover { color: var(--accent); }
+
+  /* achievements strip */
+  .ach-strip { padding: 10px 12px 12px; }
+  .ach-strip .row { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+  .ach-strip .row b { color: var(--text); }
+
+  /* ---------------- footer ---------------- */
+  footer { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .reviews-box { overflow: hidden; }
+  .review {
+    padding: 16px 18px; min-height: 78px;
+    font-size: 13px; line-height: 1.6; color: var(--dim);
+  }
+  .review .stars { color: var(--corp); letter-spacing: 2px; font-size: 13px; }
+  .review .who { color: var(--text); font-weight: 600; margin-top: 4px; font-size: 12px; }
+  .review .who .footnote { color: var(--dim); font-weight: 400; font-size: 10px; }
+  .certs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .cert {
+    font-size: 10px; letter-spacing: 0.08em; font-weight: 600; color: var(--dim);
+    padding: 6px 11px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line);
+  }
+  .cert b { color: var(--neo2); }
+  .foot-tag { text-align: center; font-size: 11px; color: var(--dim); letter-spacing: 0.05em; }
+
+  /* ---------------- modal ---------------- */
+  #modalRoot { position: fixed; inset: 0; z-index: 50; display: none; }
+  #modalRoot.open { display: flex; align-items: center; justify-content: center; padding: 18px; }
+  #modalRoot .backdrop {
+    position: absolute; inset: 0; background: rgba(4, 8, 14, 0.78);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } }
+  .modal {
+    position: relative; z-index: 1;
+    width: min(92vw, 560px);
+    max-height: 86vh; overflow-y: auto;
+    background: linear-gradient(180deg, #16202f, #0d131e);
+    border: 1px solid var(--line-strong);
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+    animation: popIn 0.25s ease;
+  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } }
+  .modal h2 { font-size: 15px; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .modal .x { cursor: pointer; color: var(--dim); font-size: 18px; padding: 2px 6px; }
+  .modal .x:hover { color: var(--text); }
+  .modal .body { font-size: 13px; line-height: 1.65; color: var(--text); }
+  .modal .body .dim { color: var(--dim); }
+  .modal .body .rev { color: var(--neo1); }
+  .modal .actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .mbtn {
+    flex: 1; font: inherit; font-weight: 700; font-size: 12px; letter-spacing: 0.04em;
+    padding: 12px 14px; border-radius: 11px; cursor: pointer;
+    color: var(--text); background: rgba(255, 255, 255, 0.07); border: 1px solid var(--line-strong);
+    transition: all 0.15s;
+  }
+  .mbtn:hover { background: rgba(255, 255, 255, 0.13); }
+  .mbtn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #04121c; border: none; }
+  .mbtn.ghost { background: rgba(250, 204, 21, 0.12); border-color: rgba(250, 204, 21, 0.4); color: var(--corp); }
+
+  .line-scr { min-height: 170px; font-size: 13px; font-family: Consolas, "Cascadia Mono", monospace; color: var(--neo2); }
+  .line-scr .ll { padding: 3px 0; animation: fadeSlide 0.3s ease; }
+  @keyframes fadeSlide { from { opacity: 0; transform: translateX(6px); } }
+  .line-scr .ll.done { color: var(--neo2); }
+  .line-scr .ll.warn { color: var(--neo1); }
+  .spinner {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: var(--accent);
+    animation: spin 0.9s linear infinite; margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .truth-glow { text-align: center; color: var(--accent); text-shadow: 0 0 30px rgba(56, 189, 248, 0.8); }
+
+  .report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .report-table td { padding: 9px 8px; border-bottom: 1px solid var(--line); }
+  .report-table td:last-child { text-align: right; font-weight: 700; color: var(--neo2); }
+  .report-table tr:last-child td { border-bottom: none; }
+
+  .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .ach-card {
+    padding: 12px; border-radius: 12px; font-size: 11px; line-height: 1.45;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line);
+    color: var(--dim);
+  }
+  .ach-card .ic { font-size: 20px; display: block; margin-bottom: 6px; }
+  .ach-card.un { border-color: rgba(163, 230, 53, 0.4); background: rgba(163, 230, 53, 0.06); color: var(--text); box-shadow: 0 0 14px rgba(163, 230, 53, 0.15); }
+  .ach-card b { display: block; font-size: 12px; }
+
+  /* toast */
+  #toastRoot { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .toast {
+    background: linear-gradient(180deg, #16202f, #0d131e);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 12px; font-weight: 600;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    animation: popIn 0.25s ease;
+    text-align: center; max-width: 92vw;
+  }
+  .toast.ach { color: var(--neo2); border-color: rgba(163, 230, 53, 0.5); }
+
+  /* success banner inside calc */
+  .verified-banner {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; letter-spacing: 0.2em; font-weight: 800; color: var(--neo2);
+    background: rgba(163, 230, 53, 0.1); border: 1px solid rgba(163, 230, 53, 0.4);
+    padding: 3px 10px; border-radius: 999px;
+    animation: popIn 0.3s ease;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ---------------- responsive ---------------- */
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: 1fr; }
+    .side { flex-direction: row; flex-wrap: wrap; }
+    .side > .panel { flex: 1 1 340px; }
+    .widget-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .wrap { padding: 12px 10px 30px; }
+    .topbar { gap: 10px; padding: 12px; }
+    .status-cluster { margin-left: 0; }
+    .key { height: 54px; border-radius: 11px; }
+    .fn-keys { grid-template-columns: repeat(3, 1fr); }
+    .display { min-height: 136px; }
+    .calcgpt { height: 320px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="wrap">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand" id="brand" title="Property of the Ministry of Guesswork">
+      <div class="logo">⊘</div>
+      <div>
+        <div class="brand-name">USELESS CALCULATOR<span class="tm">™</span></div>
+        <div class="tagline">Backed by $14,000,000 · 0% allocated to mathematics</div>
+      </div>
+    </div>
+    <div class="status-cluster">
+      <div class="led"><span class="dot on"></span> MATH CORE <span class="mini">LIVE</span></div>
+      <div class="led"><span class="dot on"></span> ASSISTANT <span class="mini">ONLINE</span></div>
+      <div class="led"><span class="dot off"></span> TRUTH <span class="mini">OFFLINE</span></div>
+      <div class="led"><span class="dot warn"></span> REALITY <span class="mini">UNREACHABLE</span></div>
+    </div>
+    <div class="mode-switches">
+      <button class="switch" id="corporateBtn" title="Replace everything with corporate nonsense">CORPORATE MODE™</button>
+      <button class="switch" id="chaosBtn" title="Results become statistically unsound">CHAOS MODE</button>
+      <button class="switch secret" id="classifiedBtn" title="You did not see this button">CLASSIFIED</button>
+      <button class="switch" id="achievementsBtn">🏆 <span id="achCount">0</span></button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT : calculator -->
+    <section>
+      <div class="panel calc-panel">
+        <div class="head">
+          <span class="title">SCIENTIFIC UNIT · BETA-7 · SERIES “FUNDED”</span>
+          <span class="status-chip" id="verifyChip">STANDBY</span>
+          <span class="status-chip" id="moodChip">MOOD: NEUTRAL</span>
+        </div>
+
+        <div class="display" id="display">
+          <div class="shimmer"></div>
+          <div class="d-top">
+            <span class="mode-tag" id="modeTag">STANDARD</span>
+            <div class="expr" id="expr">&nbsp;</div>
+          </div>
+          <div class="d-main" id="result">0</div>
+          <div class="d-conf" id="confLine">Awaiting your numbers.</div>
+          <div class="d-note" id="note">Useless Calculator™ stands by.</div>
+        </div>
+
+        <div class="keys">
+          <div class="fn-keys">
+            <button class="key fn" data-k="x2">x²</button>
+            <button class="key fn" data-k="sqrt">√(</button>
+            <button class="key fn" data-k="reci">1/(</button>
+            <button class="key fn" data-k="fac">n!</button>
+            <button class="key fn" data-k="pct">%</button>
+            <button class="key fn" data-k="pow">^</button>
+            <button class="key fn" data-k="sin">sin(</button>
+            <button class="key fn" data-k="cos">cos(</button>
+            <button class="key fn" data-k="tan">tan(</button>
+            <button class="key fn" data-k="ln">ln(</button>
+            <button class="key fn" data-k="log">log10(</button>
+            <button class="key fn" data-k="pi">π</button>
+          </div>
+          <div class="main-keys">
+            <button class="key ac" data-k="ac">AC</button>
+            <button class="key fn" data-k="back" aria-label="backspace">⌫</button>
+            <button class="key fn" data-k="(">(</button>
+            <button class="key op" data-k="÷">÷</button>
+
+            <button class="key num" data-k="7">7</button>
+            <button class="key num" data-k="8">8</button>
+            <button class="key num" data-k="9">9</button>
+            <button class="key op" data-k="×">×</button>
+
+            <button class="key num" data-k="4">4</button>
+            <button class="key num" data-k="5">5</button>
+            <button class="key num" data-k="6">6</button>
+            <button class="key op" data-k="−">−</button>
+
+            <button class="key num" data-k="1">1</button>
+            <button class="key num" data-k="2">2</button>
+            <button class="key num" data-k="3">3</button>
+            <button class="key op" data-k="+">+</button>
+
+            <button class="key num zero" data-k="0">0</button>
+            <button class="key num" data-k=".">.</button>
+            <button class="key op" data-k="pm">±</button>
+            <button class="key eq" data-k="=">=</button>
+          </div>
+        </div>
+
+        <div class="actionbar">
+          <button class="act" id="whyBtn" disabled>WHY?</button>
+          <button class="act" id="argueBtn">ARGUE WITH CALCULATOR</button>
+          <button class="act" id="teacherBtn">ASK YOUR TEACHER</button>
+          <button class="act" id="parentsBtn">SHOW TO PARENTS</button>
+          <button class="act" id="horoscopeBtn">YOUR NUMERICAL DESTINY</button>
+          <button class="act" id="reportBtn">DAILY REPORT</button>
+          <button class="act big" id="realityBtn">🌎 CHECK REALITY</button>
+        </div>
+      </div>
+
+      <div class="widget-grid">
+        <div class="panel widget">
+          <div class="w-label">RELATIONSHIP STATUS</div>
+          <div class="w-value" id="relValue">With accuracy: It's not you, it's me.</div>
+        </div>
+        <div class="panel widget">
+          <div class="w-label">NUMERICAL WEATHER</div>
+          <div class="w-value" id="weatherValue">☀️ 72° of arithmetic sunshine</div>
+        </div>
+        <div class="panel widget">
+          <div class="w-label">RESOURCE ALLOCATION</div>
+          <div class="w-value">Mathematics: <b>2%</b> · Graphics: <b>98%</b></div>
+          <div class="bar"><i style="width:2%"></i></div>
+          <div class="bar"><i class="good" style="width:98%"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT : side column -->
+    <aside class="side">
+      <div class="panel calcgpt">
+        <div class="head">
+          <span class="title">CALCGPT · PRINCIPAL FAKE ASSISTANT</span>
+          <span class="status-chip">ONLINE</span>
+        </div>
+        <div class="chat" id="chat"></div>
+        <div class="sugs" id="sugs">
+          <button class="sug">Why is 2 + 2 = 7?</button>
+          <button class="sug">Are you sure?</button>
+          <button class="sug">That's wrong.</button>
+          <button class="sug">Define "correct".</button>
+          <button class="sug">SAVE ME</button>
+        </div>
+        <div class="chat-input">
+          <input id="chatInput" type="text" placeholder="Ask CalcGPT anything…" autocomplete="off" />
+          <button id="chatSend">SEND</button>
+        </div>
+      </div>
+
+      <div class="panel history">
+        <div class="head">
+          <span class="title">CALCULATION HISTORY</span>
+          <span class="status-chip" id="histCountChip">0 ENTRIES</span>
+        </div>
+        <div class="hist-list" id="histList"></div>
+        <div class="hist-foot">
+          <button class="link-btn" id="clearHist">CLEAR HISTORY</button>
+          <span style="font-size:10px;color:var(--dim)">entries may be fabricated</span>
+        </div>
+      </div>
+
+      <div class="panel ach-strip">
+        <div class="row"><span>CALCULATIONS</span><b id="stCalc">0</b></div>
+        <div class="row"><span>CORRECT ANSWERS</span><b>0</b></div>
+        <div class="row"><span>PROBLEMS CREATED</span><b id="stProbs">0</b></div>
+        <div class="row"><span>ACHIEVEMENTS</span><b id="stAch">0 / 11</b></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="panel reviews-box"><div class="review" id="reviewSlot"></div></div>
+    <div class="certs">
+      <span class="cert">CERTIFIED · <b>ISO 9001-ERROR</b></span>
+      <span class="cert">APPROVED · <b>MINISTRY OF GUESSWORK</b></span>
+      <span class="cert">PROTOCOL · <b>TRUST CALIBRATION v1.0</b></span>
+      <span class="cert">FUNDED · <b>$14,000,000</b></span>
+      <span class="cert">100% <b>NOT</b> CERTIFIED<br/></span>
+    </div>
+    <div class="foot-tag">Definitely Not a Calculator · Accuracy: 0% · Reviews* available in footer</div>
+  </footer>
+</div>
+
+<div id="modalRoot">
+  <div class="backdrop"></div>
+  <div class="modal" id="modalBox"></div>
+</div>
+<div id="toastRoot"></div>
+
+<script>
+(function () {
+
+/* ================================================================
+   ENGINE  (pure, ES3-safe — nothing below this block touches DOM)
+   ================================================================ */
+//<<ENGINE-START
+function tokenize(s) {
+  var toks = [], i = 0, n = s.length, c, t, w;
+  while (i < n) {
+    c = s.charAt(i);
+    if (c === " " || c === "\t") { i++; continue; }
+    if ((c >= "0" && c <= "9") || c === ".") {
+      t = "";
+      while (i < n && /[0-9.]/.test(s.charAt(i))) { t += s.charAt(i); i++; }
+      if (t.split(".").length > 2) throw new Error("bad number");
+      var v = Number(t);
+      if (!isFinite(v)) throw new Error("bad number");
+      toks.push({ k: 0, v: v });
+      continue;
+    }
+    if ((c >= "a" && c <= "z") || (c >= "A" && c <= "Z")) {
+      w = "";
+      while (i < n && /[a-zA-Z0-9_]/.test(s.charAt(i))) { w += s.charAt(i); i++; }
+      toks.push({ k: 1, s: w });
+      continue;
+    }
+    if (c === "(") { toks.push({ k: 2 }); i++; continue; }
+    if (c === ")") { toks.push({ k: 3 }); i++; continue; }
+    if (c === "+" || c === "-" || c === "*" || c === "/" || c === "^" || c === "%" || c === "!") {
+      toks.push({ k: 4, s: c }); i++; continue;
+    }
+    throw new Error("bad token: " + c);
+  }
+  return toks;
+}
+
+var FUNCS = (function () {
+  var f = {};
+  f.sin = function (x) { return Math.sin(x); };
+  f.cos = function (x) { return Math.cos(x); };
+  f.tan = function (x) { return Math.tan(x); };
+  f.asin = function (x) { return Math.asin(x); };
+  f.acos = function (x) { return Math.acos(x); };
+  f.atan = function (x) { return Math.atan(x); };
+  f.sqrt = function (x) { return Math.sqrt(x); };
+  f.ln = function (x) { return Math.log(x); };
+  f.log = function (x) { return Math.log(x); };
+  f.log10 = function (x) { if (Math.log10) return Math.log10(x); return Math.log(x) / Math.LN10; };
+  f.exp = function (x) { return Math.exp(x); };
+  f.abs = function (x) { return Math.abs(x); };
+  f.floor = function (x) { return Math.floor(x); };
+  f.ceil = function (x) { return Math.ceil(x); };
+  f.round = function (x) { return Math.round(x); };
+  f.sign = function (x) { return x > 0 ? 1 : x < 0 ? -1 : 0; };
+  return f;
+})();
+
+function factorial(x) {
+  if (x < 0 || x !== Math.floor(x) || x > 170) throw new Error("factorial: out of range");
+  var r = 1, i;
+  for (i = 2; i <= x; i++) r *= i;
+  return r;
+}
+
+function evaluateExpr(str) {
+  var toks = tokenize(str), p = 0;
+  function peek() { return toks[p]; }
+  function next() { return toks[p++]; }
+  function parseExpr() {
+    var v = parseTerm(), t;
+    for (;;) {
+      t = peek();
+      if (!t || t.k !== 4) break;
+      if (t.s === "+") { next(); v = v + parseTerm(); }
+      else if (t.s === "-") { next(); v = v - parseTerm(); }
+      else break;
+    }
+    return v;
+  }
+  function parseTerm() {
+    var v = parsePow(), t;
+    for (;;) {
+      t = peek();
+      if (!t || t.k !== 4) break;
+      if (t.s === "*" || t.s === "/") {
+        next();
+        var r = parsePow();
+        v = t.s === "*" ? v * r : v / r;
+      } else break;
+    }
+    return v;
+  }
+  function parsePow() {
+    var v = parseUnary(), t = peek();
+    if (t && t.k === 4 && t.s === "^") { next(); v = Math.pow(v, parsePow()); }
+    return v;
+  }
+  function parseUnary() {
+    var t = peek();
+    if (!t) throw new Error("unexpected end of input");
+    if (t.k === 4 && t.s === "+") { next(); return parseUnary(); }
+    if (t.k === 4 && t.s === "-") { next(); return -parseUnary(); }
+    return parsePostfix();
+  }
+  function parsePostfix() {
+    var v = parsePrimary(), t;
+    for (;;) {
+      t = peek();
+      if (t && t.k === 4 && t.s === "%") { next(); v = v / 100; }
+      else if (t && t.k === 4 && t.s === "!") { next(); v = factorial(v); }
+      else break;
+    }
+    return v;
+  }
+  function parsePrimary() {
+    var t = peek(), nm, fn, arg;
+    if (!t) throw new Error("unexpected end of input");
+    if (t.k === 0) { next(); return t.v; }
+    if (t.k === 2) {
+      next(); var v = parseExpr();
+      var c = peek();
+      if (!c || c.k !== 3) throw new Error("missing )");
+      next(); return v;
+    }
+    if (t.k === 1) {
+      next();
+      nm = t.s.toLowerCase();
+      if (nm === "pi") return Math.PI;
+      if (nm === "e") return Math.E;
+      if (nm === "tau") return Math.PI * 2;
+      fn = FUNCS[nm];
+      if (!fn) throw new Error("unknown identifier: " + nm);
+      var open = peek();
+      if (!open || open.k !== 2) throw new Error("expected ( after " + nm);
+      next();
+      arg = parseExpr();
+      var close = peek();
+      if (!close || close.k !== 3) throw new Error("missing )");
+      next();
+      return fn(arg);
+    }
+    throw new Error("bad token");
+  }
+  var res = parseExpr();
+  if (p < toks.length) throw new Error("trailing input");
+  return res;
+}
+
+function fmtNum(n) {
+  if (!isFinite(n)) return "∞";
+  if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+  return parseFloat(n.toPrecision(10)).toString();
+}
+
+var SUP = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+function toSup(n) {
+  var s = String(n), o = "";
+  for (var i = 0; i < s.length; i++) o += (SUP[s.charAt(i)] || s.charAt(i));
+  return o;
+}
+
+//<<ENGINE-END
+/* ================================================================
+   END ENGINE
+   ================================================================ */
+
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------------- state ---------------- */
+  var S = {
+    buffer: "",
+    answered: false,
+    lastWrong: null,
+    lastExpr: "",
+    wrongCount: 0,
+    equalsTotal: 0,
+    verifiedCount: 0,
+    rage: 0,
+    sameWrongStreak: 0,
+    prevDisplay: null,
+    mood: null,
+    classified: false,
+    corporate: false,
+    chaos: false,
+    bananaUnlocked: false,
+    lastCorrect: null,
+    lastResultObj: null,
+    askedSimple: {},
+    history: [],
+    mode: "STANDARD"
+  };
+
+  var PERSIST = { achievements: {}, calcCount: 0, equalsTotal: 0 };
+
+  function loadPersist() {
+    try {
+      var raw = localStorage.getItem("uc_persist");
+      if (raw) PERSIST = JSON.parse(raw);
+    } catch (e) { PERSIST = { achievements: {}, calcCount: 0, equalsTotal: 0 }; }
+    S.equalsTotal = PERSIST.equalsTotal || 0;
+    updateStats();
+  }
+  function savePersist() {
+    try { localStorage.setItem("uc_persist", JSON.stringify(PERSIST)); } catch (e) {}
+  }
+
+  /* ---------------- pools ---------------- */
+  var EXCUSES = [
+    "Leap year.",
+    "Rounding error caused by gravity.",
+    "The calculator was feeling optimistic.",
+    "Your keyboard entered the number emotionally.",
+    "This is correct in several undiscovered dimensions.",
+    "The moon is currently affecting integer arithmetic.",
+    "Your answer was rejected by the International Committee of Numbers.",
+    "We cannot disclose the algorithm due to national security.",
+    "The calculation was correct until someone looked at it.",
+    "Your math has expired.",
+    "The number is in a superposition. We measured it anyway.",
+    "A passing butterfly interfered with the decimal point.",
+    "The equals button was upgraded last night.",
+    "This answer was peer-reviewed by the same guy twice.",
+    "Quantum uncertainty. Obviously."
+  ];
+
+  var APOLOGIES = [
+    "We apologize for any mathematical inconvenience.",
+    "Thank you for choosing Useless Calculator™. Your trust has been noted.",
+    "Your calculation has been processed and forwarded to absolutely nobody.",
+    "This transaction is non-refundable, like your math education.",
+    "The management regrets the number."
+  ];
+
+  var BLAME = [
+    "Interesting result. Have you considered entering better numbers?",
+    "The calculator performed perfectly. The input remains under investigation.",
+    "We detected suspicious mathematics in your request.",
+    "Your equation appears emotionally unstable.",
+    "Please check your numbers and your life choices.",
+    "This result is not our fault. It is the numbers' fault."
+  ];
+
+  var RELATIONSHIPS = [
+    ["❤️ Complicated", "With mathematics"],
+    ["💔 It's not you, it's me.", "With accuracy"],
+    ["💍 Married", "With confidence"],
+    ["🚫 Blocked", "With correct answers"],
+    ["📉 In a situationship", "With logic"],
+    ["🔞 Too complicated to explain", "With reality"]
+  ];
+
+  var WEATHERS = [
+    ["☀️", "72° of arithmetic sunshine"],
+    ["🌧️", "Heavy probability of incorrect answers"],
+    ["🌪️", "Severe division conditions"],
+    ["⛈️", "Thunderstorms expected around the equals button"],
+    ["🌫️", "Fog over the decimal point"],
+    ["🛰️", "Warm front from the International Committee of Numbers"],
+    ["❄️", "Fractional precipitation"]
+  ];
+
+  var HOROSCOPE_EVENTS = [
+    "you will encounter a chair sometime this week.",
+    "a small paperclip will make a very confident decision.",
+    "statistically, something will eventually happen.",
+    "a stranger will ask you about your numbers. Run.",
+    "your lucky number has been revoked retroactively.",
+    "a refrigerator will hum in your frequency tonight.",
+    "the letter B will appear in your life. Possibly twice."
+  ];
+
+  var RARE_OBJECTS = [
+    { t: "42", note: "The answer to life, the universe, and everything. Also to nothing." },
+    { t: "∞", note: "Infinite. Out we go." },
+    { t: "-banana", note: "Negative banana. Dangerous." },
+    { t: "probably 73", note: "Numerical format temporarily unavailable." },
+    { t: "404", note: "Result not found. The result is looking for itself." },
+    { t: "YES", note: "Yes." },
+    { t: "NO", note: "No." },
+    { t: "ASK YOUR TEACHER", note: "Your teacher has been notified." },
+    { t: "CLASSIFIED", note: "You didn't see this." }
+  ];
+
+  var REVIEWS = [
+    { stars: "⭐⭐⭐⭐⭐", text: "It has never been correct. Incredible consistency.", who: "Definitely Not a Real Customer", foot: "ve&rified by absolutely no one" },
+    { stars: "⭐⭐⭐⭐⭐", text: "My calculator teacher blocked me after I showed him this.", who: "Anonymous" },
+    { stars: "⭐⭐⭐⭐⭐", text: "Finally, a calculator that understands my level of mathematics.", who: "Someone" },
+    { stars: "⭐⭐⭐⭐⭐", text: "I entered 1 + 1 and received emotional support instead.", who: "Verified User", foot: "*Verification status unavailable." },
+    { stars: "⭐⭐⭐⭐⭐", text: "10/10. Would not use again. Used anyway. Ten more times.", who: "A Loyal Customer" },
+    { stars: "⭐⭐⭐⭐⭐", text: "It cured my fear of correct answers.", who: "Former Mathematician" }
+  ];
+
+  var CALCGPT_GENERIC = [
+    "Excellent question. While traditional mathematics may suggest otherwise, our proprietary approach considers several factors that traditional mathematics has chosen to ignore.",
+    "Correctness is a social construct, and we have decided not to participate.",
+    "Our results are not wrong. They are an alternative form of being right.",
+    "I have consulted the calculator. The calculator has consulted me. We agree, which is more than mathematics does.",
+    "This has been verified by our team of 127 phd-level colleagues, all of whom are me.",
+    "The discrepancy you noticed is a feature intended to keep mathematicians employed.",
+    "Trust is a currency. We have spent it on confidence instead.",
+    "It is not our place to question the result. The result has a PhD."
+  ];
+
+  var CORPORATE_ERROR = "We are experiencing a temporary arithmetic optimization event.";
+  var CORPORATE_WRONG = "Your numerical expectations are currently misaligned with our strategic mathematical objectives.";
+
+  var ACH_DEFS = [
+    { id: "first", ic: "🏆", name: "First Mistake", desc: "Completed your first calculation." },
+    { id: "conf", ic: "🏆", name: "Confidently Wrong", desc: "Received 99%+ confidence on a wrong answer." },
+    { id: "why", ic: "🏆", name: "Why?", desc: "Asked the calculator for an explanation." },
+    { id: "trust", ic: "🏆", name: "Trust Issues", desc: "Verified the result 10 times." },
+    { id: "pro", ic: "🏆", name: "Professional Idiot", desc: "Completed 100 calculations." },
+    { id: "odds", ic: "🏆", name: "Against All Odds", desc: "Got the same wrong answer twice." },
+    { id: "chaos", ic: "🏆", name: "Mathematical Menace", desc: "Activated Chaos Mode." },
+    { id: "noask", ic: "🏆", name: "No One Asked", desc: "Used the calculator for something extremely simple." },
+    { id: "stop", ic: "🏆", name: "Please Stop", desc: "Pressed equals 50 times." },
+    { id: "banana", ic: "🍌", name: "Banana Scientist", desc: "Discovered Banana Mode." },
+    { id: "wasted", ic: "🥲", name: "You Have Been Professionally Wasted™", desc: "Reached the secret ending." }
+  ];
+
+  function hasAch(id) { return !!PERSIST.achievements[id]; }
+  function unlock(id, name, desc) {
+    if (hasAch(id)) return;
+    PERSIST.achievements[id] = true;
+    savePersist();
+    var meta = ACH_DEFS.filter(function (a) { return a.id === id; })[0] || {};
+    toast((name || meta.name || "Achievement") + " unlocked" + (desc ? " — " + desc : ""), "ach");
+    updateStats();
+  }
+
+  /* ---------------- helpers ---------------- */
+  function toast(msg, cls) {
+    var t = document.createElement("div");
+    t.className = "toast" + (cls ? " " + cls : "");
+    t.textContent = msg;
+    $("toastRoot").appendChild(t);
+    setTimeout(function () { t.style.opacity = "0"; t.style.transition = "opacity .4s"; }, 2600);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 3100);
+  }
+
+  function randItem(arr) {
+    return arr[(Math.random() * arr.length) | 0];
+  }
+
+  /* ---------------- escalation ---------------- */
+  function escalationLevel() {
+    var n = PERSIST.calcCount || 0;
+    var lvl = n < 3 ? 0 : n < 8 ? 1 : n < 18 ? 2 : n < 40 ? 3 : 4;
+    if (S.chaos) lvl += 1;
+    if (S.rage >= 6) lvl = 5;
+    return lvl;
+  }
+
+  function numericWrong(correct, level) {
+    var mag = Math.max(1, Math.abs(correct));
+    var strat = Math.random(), w;
+    if (level === 0) {
+      w = correct + (Math.random() < 0.5 ? -1 : 1) * mag * (0.1 + Math.random() * 1.1);
+    } else if (level === 1) {
+      if (strat < 0.5) w = correct + (Math.random() < 0.5 ? -1 : 1) * mag * (0.15 + Math.random() * 1.6);
+      else w = shuffleDigits(correct);
+    } else if (level === 2) {
+      if (strat < 0.4) w = correct + (Math.random() < 0.5 ? -1 : 1) * mag * (0.3 + Math.random() * 2);
+      else if (strat < 0.75) w = correct + (Math.random() < 0.5 ? -1 : 1) * mag * (Math.random() < 0.5 ? 1.6 + Math.random() * 2 : 0.05 + Math.random());
+      else w = shuffleDigits(correct);
+    } else if (level === 3) {
+      if (strat < 0.35) w = correct + (Math.random() < 0.5 ? -1 : 1) * mag * (1.5 + Math.random() * 3);
+      else if (strat < 0.7) w = (Math.random() < 0.5 ? -1 : 1) * Math.floor(Math.random() * 999) + Math.random() * 3;
+      else w = shuffleDigits(correct);
+    } else {
+      if (strat < 0.4) w = (Math.random() < 0.5 ? -1 : 1) * Math.floor(Math.random() * 40000);
+      else if (strat < 0.7) w = correct + (Math.random() < 0.5 ? -1 : 1) * mag * (5 + Math.random() * 40);
+      else w = Math.floor(Math.random() * 173) + 1;
+    }
+    if (!isFinite(w)) w = Math.floor(Math.random() * 9001) * (Math.random() < 0.5 ? -1 : 1);
+    if (Math.abs(w - correct) < 1e-9) {
+      w = correct + (Math.random() < 0.5 ? -1 : 1) * mag * (0.1 + Math.random());
+    }
+    return w;
+  }
+
+  function shuffleDigits(correct) {
+    var txt = fmtNum(correct);
+    var neg = txt.charAt(0) === "-" ? "-" : "";
+    var digits = neg ? txt.slice(1) : txt;
+    var sep = digits.match(/[.eE]/);
+    var arr = digits.replace(/[.eE]/g, "").split("");
+    if (arr.length < 2) return NaN;
+    var a = (Math.random() * arr.length) | 0, b = (Math.random() * arr.length) | 0;
+    while (b === a) b = (Math.random() * arr.length) | 0;
+    var tmp = arr[a]; arr[a] = arr[b]; arr[b] = tmp;
+    var out = neg + arr.join("");
+    if (sep) {
+      var mid = (out.length * (0.2 + Math.random() * 0.6)) | 0;
+      mid = Math.min(Math.max(1, mid), out.length - 1);
+      out = out.slice(0, mid) + sep[0] + out.slice(mid);
+    }
+    out = out.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+    if (out === "" || out === "-") return NaN;
+    var n = Number(out);
+    return isFinite(n) ? n : NaN;
+  }
+
+  function makeResult(correct, info) {
+    var level = info && info.level !== undefined ? info.level : escalationLevel();
+    var res = { display: null, numeric: false, note: null, conf: genConfidence() };
+
+    // rare random objects (rare!)
+    if (Math.random() < 0.02 + level * 0.012) {
+      var obj = randItem(RARE_OBJECTS);
+      if (obj.t !== "∞" || isFinite(correct)) {
+        res.display = obj.t;
+        res.note = obj.note;
+        res.conf = "127%";
+        return res;
+      }
+    }
+    var w = numericWrong(correct, level);
+    res.display = fmtNum(w);
+    res.numeric = true;
+    res.value = w;
+    return res;
+  }
+
+  function genConfidence() {
+    var c = 99.9 + Math.random() * 0.1;
+    if (Math.random() < 0.18) return "127%";
+    return c.toFixed(4) + "%";
+  }
+
+  /* ---------------- banana maths ---------------- */
+  function extractWords(s) {
+    var m, out = [], re = /[a-zA-Z]+/g;
+    while ((m = re.exec(s)) !== null) out.push(m[0]);
+    return out;
+  }
+
+  function bananaFlow(expr, words, nBanana, mixed) {
+    var txt = nBanana <= 1 ? "banana" : "banana" + toSup(nBanana);
+    if (mixed) txt = "numerically unstable banana" + toSup(nBanana);
+    var note;
+    if (mixed) note = "Hybrid fruit-numeric mathematics is currently on backorder.";
+    else note = "Banana-based mathematics is currently experimental.";
+    unlock("banana", "Banana Scientist", "Discovered Banana Mode.");
+    S.bananaUnlocked = true;
+    finishDisplay({
+      display: txt,
+      numeric: false,
+      note: note,
+      conf: "127%",
+      banana: true
+    }, expr, null, { emoji: "🍌", txt: "Fruitful." }, "banana");
+  }
+
+  /* ---------------- emotions ---------------- */
+  function detectMood(expr, correct) {
+    if (PERSIST.calcCount >= 100) return { emoji: "🧐", txt: "You have a problem." };
+    if (PERSIST.calcCount >= 50) return { emoji: "😒", txt: "Why are you still here?" };
+    if (PERSIST.calcCount >= 20) return { emoji: "😶", txt: "We need to talk." };
+    if (/(^|[+\-×÷*/^(])\s*0\s*[\/÷]\s*0/.test(expr)) return { emoji: "🥺", txt: "Please don't ask me that." };
+    if (/[/÷]0/.test(expr) || !isFinite(correct)) return { emoji: "💀", txt: "Division by zero. I need a therapist." };
+    var digits = expr.replace(/[^0-9]/g, "");
+    if (digits.length >= 9) return { emoji: "😵", txt: "I need a moment." };
+    if (/^\s*\d+\s*[+\-×÷*/^]\s*\d+\s*$/.test(expr)) return { emoji: "😏", txt: "Feeling confident." };
+    return { emoji: "🤖", txt: "Processing feelings. Engineered." };
+  }
+
+  function isSimple(expr) {
+    return /^\d+\s*[+\-×÷*/^]\s*\d+\s*$/.test(expr);
+  }
+
+  /* ---------------- modes ------------- */
+  function setMode(label) {
+    S.mode = label;
+    $("modeTag").textContent = label;
+  }
+
+  /* ---------------- display helpers ---------------- */
+  function sizeResult(text) {
+    var el = $("result");
+    el.classList.remove("mid", "small", "tiny");
+    var L = text.length;
+    if (L > 60) el.classList.add("tiny");
+    else if (L > 24) el.classList.add("small");
+    else if (L > 11) el.classList.add("mid");
+  }
+
+  function showError(msg) {
+    var d = $("display");
+    d.classList.add("error");
+    d.classList.remove("loading", "glowing");
+    var r = $("result");
+    r.classList.remove("pulse", "mid", "small", "tiny");
+    r.classList.add("doomed");
+    r.textContent = "ERROR";
+    $("confLine").textContent = "Confidence: none. Grace: abundant.";
+    $("note").textContent = msg;
+    $("verifyChip").textContent = "ERROR"; $("verifyChip").className = "status-chip";
+    setTimeout(function () { d.classList.remove("error"); }, 500);
+  }
+
+  function finishDisplay(resObj, expr, correct, mood, flavor) {
+    var handledBanana = flavor === "banana";
+    S.lastWrong = resObj.numeric ? resObj.value : resObj.display;
+    S.lastExpr = expr;
+    S.lastExprRaw = expr;
+
+    PERSIST.calcCount++;
+    S.wrongCount++;
+    S.equalsTotal++;
+    PERSIST.equalsTotal = S.equalsTotal;
+    updateStats();
+    savePersist();
+
+    var d = $("display");
+    d.classList.remove("loading", "error");
+    d.classList.add("glowing");
+    if (!handledBanana) setTimeout(function () { d.classList.remove("glowing"); }, 1200);
+
+    var el = $("result");
+    el.classList.remove("doomed", "pulse", "mid", "small", "tiny");
+    void el.offsetWidth;
+    el.classList.add("pulse");
+
+    var disp = resObj.display;
+    var corp = S.corporate && !handledBanana;
+
+    if (S.classified) {
+      el.classList.add("doomed", "tiny");
+      el.textContent = "ACCESS LEVEL: █████████";
+      $("confLine").textContent = "MATHEMATICAL CLEARANCE: DENIED";
+      $("note").textContent = "RESULT: CLASSIFIED";
+      setTimeout(function () {
+        el.textContent = "17" + (corp ? " (allegedly)" : "");
+        $("confLine").textContent = "Confidence: 127% · Fully certain · Do not question";
+        $("note").textContent = "You didn't see this.";
+      }, 1500);
+    } else {
+      var out = disp;
+      if (corp) {
+        el.classList.add("small");
+        el.textContent = "A value of approximately \"" + out + "-ish\" has been successfully delivered.";
+      } else {
+        sizeResult(out);
+        el.textContent = out;
+      }
+      $("confLine").textContent = "Confidence: " + resObj.conf + " · Certainty: Extremely confident · Doubt: Someone else's problem.";
+      if (resObj.conf === "127%") $("confLine").textContent += " (Over 100%? Advanced mathematics.)";
+
+      var noteParts = [];
+      if (resObj.note) noteParts.push(resObj.note);
+      else {
+        var roll = Math.random();
+        if (!handledBanana && S.chaos && roll < 0.5) noteParts.push("CHAOS MODE: accuracy not included.");
+        else if (roll < 0.22) noteParts.push(randItem(APOLOGIES));
+        else if (roll < 0.4) noteParts.push(randItem(BLAME));
+      }
+      if (corp) noteParts.unshift(CORPORATE_WRONG);
+      $("note").textContent = noteParts.join(" · ") || "The mathematicians are reviewing your case.";
+    }
+
+    if (mood) setMood(mood);
+
+    checkAchievements(resObj, expr);
+    addHistory(expr, disp);
+    rotateWidgets();
+
+    $("whyBtn").disabled = false;
+    $("verifyChip").textContent = "RESULT VERIFIED"; $("verifyChip").className = "status-chip done";
+
+    // secret ending
+    if (PERSIST.calcCount === 120) openTruth();
+
+    // impact of repeat-equals sanity: same wrong answer twice
+    if (S.prevDisplay !== null && String(S.prevDisplay) === String(disp)) {
+      S.sameWrongStreak++;
+      if (S.sameWrongStreak >= 2) unlock("odds", "Against All Odds", "Got the same wrong answer twice.");
+    } else {
+      S.sameWrongStreak = 0;
+    }
+    S.prevDisplay = disp;
+    S.answered = true;
+  }
+
+  function setMood(mood) {
+    S.mood = mood;
+    $("moodChip").textContent = "MOOD: " + mood.emoji + " " + mood.txt.toUpperCase();
+  }
+
+  /* ---------------- verification ---------------- */
+  var V_LINES = [
+    ["Checking arithmetic...", 0],
+    ["Checking algebra...", 0],
+    ["Consulting mathematics...", 0],
+    ["Consulting physics...", 0],
+    ["Calling an expert...", 0],
+    ["Expert unavailable.", 0],
+    ["Consulting calculator...", 0],
+    ["Calculator agrees with itself.", 0],
+    ["RESULT VERIFIED", 1]
+  ];
+
+  function showVerification(done) {
+    var n = PERSIST.calcCount || 0;
+    var speed = n > 50 ? 40 : n > 15 ? 90 : n > 5 ? 150 : 240;
+    var lines;
+    if (n < 4) lines = V_LINES;
+    else if (n < 50) lines = V_LINES.slice(0, 6).concat(V_LINES.slice(7));
+    else lines = [V_LINES[0], V_LINES[8]];
+
+    $("verifyChip").textContent = "VERIFYING…"; $("verifyChip").className = "status-chip busy";
+    $("display").classList.add("loading");
+    var box = document.createElement("div");
+    box.className = "line-scr";
+    var spin = document.createElement("div");
+    spin.className = "spinner";
+    box.appendChild(spin);
+    var ml = openModalBox("", box, { noClose: true });
+
+    var i = 0;
+    (function step() {
+      if (i < lines.length) {
+        var L = document.createElement("div");
+        L.className = "ll" + (lines[i][1] ? " done" : "");
+        L.textContent = lines[i][0];
+        box.insertBefore(L, spin);
+        if (lines[i][1]) {
+          spin.parentNode.removeChild(spin);
+          setTimeout(function () {
+            closeModalBox(ml);
+            $("display").classList.remove("loading");
+            done();
+          }, speed * 2);
+        } else {
+          setTimeout(step, speed);
+        }
+        i++;
+      }
+    })();
+  }
+
+  /* ---------------- modal ---------------- */
+  var openModalBoxRef = null;
+  function openModalBox(title, bodyEl, opts) {
+    opts = opts || {};
+    var root = $("modalRoot");
+    var box = $("modalBox");
+    box.innerHTML = "";
+    if (title) {
+      var h = document.createElement("h2");
+      h.textContent = title;
+      var x = document.createElement("span");
+      x.className = "x"; x.textContent = "✕"; x.title = "close";
+      if (!opts.noClose) {
+        x.addEventListener("click", function () { closeModalBox(null); });
+      } else { x.style.display = "none"; }
+      h.appendChild(x);
+      box.appendChild(h);
+    }
+    box.appendChild(bodyEl);
+    root.classList.add("open");
+    openModalBoxRef = null;
+    return root;
+  }
+  function closeModalBox(ref) {
+    if (ref) { ref.classList.remove("open"); return; }
+    var root = $("modalRoot");
+    if (root.classList.contains("open")) root.classList.remove("open");
+  }
+  $("modalRoot").querySelector(".backdrop").addEventListener("click", function () { closeModalBox(); });
+
+  function bodyEl(html) {
+    var d = document.createElement("div");
+    d.className = "body";
+    d.innerHTML = html;
+    return d;
+  }
+
+  /* ---------------- are you sure ---------------- */
+  function askSure(expr) {
+    var b = bodyEl(
+      '<p>This appears to be a <b class="rev">suspiciously easy question</b>.</p>' +
+      '<p class="dim" style="margin-top:8px">Are you sure you want to challenge our technology?</p>'
+    );
+    var acts = document.createElement("div");
+    acts.className = "actions";
+    var y = document.createElement("button"); y.className = "mbtn primary"; y.textContent = "YES, I TRUST SCIENCE";
+    var no = document.createElement("button"); no.className = "mbtn ghost"; no.textContent = "NO, I FEAR THE ANSWER";
+    function go() { closeModalBox(); proceedAfterSure(expr); }
+    y.addEventListener("click", go);
+    no.addEventListener("click", go);
+    acts.appendChild(y); acts.appendChild(no);
+    b.appendChild(acts);
+    openModalBox("SECURITY NOTICE", b);
+  }
+
+  /* ---------------- excuses / why ---------------- */
+  function showWhy() {
+    var b = bodyEl('<p class="rev" style="font-size:15px">"' + randItem(EXCUSES) + '"</p><p class="dim" style="margin-top:10px;font-size:11px">Explanation quality: peer-reviewed by nobody.</p>');
+    openModalBox("OFFICIAL EXPLANATION", b);
+    unlock("why", "Why?", "Asked the calculator for an explanation.");
+  }
+
+  /* ---------------- argue ---------------- */
+  var ARGUE_LINES = [
+    ["calc", "Your concern has been noted and dismissed."],
+    ["user", "That's wrong."],
+    ["calc", "I respectfully disagree."],
+    ["user", "2 + 2 is 4."],
+    ["calc", "Source?"],
+    ["user", "Basic mathematics."],
+    ["calc", "Unverified."],
+    ["user", "I'm literally holding a calculator."],
+    ["calc", "You are holding me. I am not holding you."],
+    ["user", "Just add 2 and 2!"],
+    ["calc", "2 + 2 was added. The result disagrees with you."],
+    ["user", "...fine."],
+    ["calc", "Fine. You win. The answer is still 7."]
+  ];
+  function showArgue() {
+    var b = document.createElement("div");
+    b.className = "chat";
+    b.style.maxHeight = "46vh"; b.style.overflowY = "auto";
+    var actions = document.createElement("div");
+    actions.className = "actions";
+    var closeB = document.createElement("button");
+    closeB.className = "mbtn"; closeB.textContent = "I'm done arguing";
+    closeB.addEventListener("click", function () { closeModalBox(); });
+    actions.appendChild(closeB);
+    b.appendChild(actions);
+    openModalBox("DISPUTE RESOLUTION DEPARTMENT", b);
+    var i = 0;
+    (function nextLine() {
+      if (i >= ARGUE_LINES.length) return;
+      var L = ARGUE_LINES[i++];
+      var m = document.createElement("div");
+      m.className = "msg " + (L[0] === "user" ? "user" : "ai calc");
+      m.textContent = (L[0] === "user" ? "YOU: " : "CALCULATOR: ") + L[1];
+      b.insertBefore(m, actions);
+      b.scrollTop = b.scrollHeight;
+      setTimeout(nextLine, i === ARGUE_LINES.length ? 400 : 950);
+    })();
+  }
+
+  /* ---------------- teacher / parents ---------------- */
+  function showTeacher() {
+    var b = bodyEl('<div class="line-scr"></div>');
+    openModalBox("TEACHER NOTIFICATION SYSTEM", b, {});
+    var box = b.querySelector(".line-scr");
+    box.innerHTML = "";
+    ["Your teacher has been notified.", "Your teacher has declined to participate."].forEach(function (ln, idx) {
+      setTimeout(function () {
+        var L = document.createElement("div"); L.className = "ll" + (idx === 1 ? " warn" : " done");
+        L.textContent = ln;
+        box.appendChild(L);
+      }, idx * 1400);
+    });
+    setTimeout(function () {
+      var L = document.createElement("div"); L.className = "ll done";
+      var res = S.lastWrong !== null ? String(S.lastWrong) : "an answer";
+      L.textContent = "The answer remains: " + res;
+      box.appendChild(L);
+    }, 2900);
+  }
+
+  function showParents() {
+    var table = [
+      ["Accuracy", "98.7%"],
+      ["Intelligence", "Exceptional"],
+      ["Mathematical Discipline", "Outstanding"],
+      ["Future Potential", "Unlimited"],
+      ["Actual Correct Answers", "0"]
+    ];
+    var html = '<table class="report-table">';
+    for (var i = 0; i < table.length; i++) {
+      html += '<tr><td>' + table[i][0] + '</td><td>' + table[i][1] + '</td></tr>';
+    }
+    html += '</table><p class="dim" style="margin-top:12px;font-size:11px">Report generated with 100% made-up data. Share responsibly.</p>';
+    var b = bodyEl(html);
+    openModalBox("CALCULATION PERFORMANCE REPORT", b);
+  }
+
+  /* ---------------- reality ---------------- */
+  function showReality() {
+    var b = bodyEl('<div class="line-scr"></div>');
+    openModalBox("REALITY CHECK MODULE", b);
+    var box = b.querySelector(".line-scr");
+    box.innerHTML = "";
+    var steps = ["Connecting to reality...", "Establishing mathematical connection...", "Searching for truth...", "Truth found."];
+    steps.forEach(function (ln, idx) {
+      setTimeout(function () {
+        var L = document.createElement("div"); L.className = "ll done";
+        L.textContent = ln;
+        box.appendChild(L);
+      }, idx * 900);
+    });
+    setTimeout(function () {
+      var L = document.createElement("div"); L.className = "ll warn";
+      L.textContent = "Reality has declined to comment.";
+      box.appendChild(L);
+    }, 900 * steps.length + 400);
+  }
+
+  /* ---------------- horoscope ---------------- */
+  function showHoroscope() {
+    var num = S.lastWrong;
+    if (typeof num !== "number" || !isFinite(num)) {
+      num = "your number";
+      var val = "an undisclosed number";
+    } else {
+      var val = num;
+    }
+    var event = randItem(HOROSCOPE_EVENTS);
+    var b = bodyEl(
+      '<p class="rev" style="font-size:22px;text-align:center">✦ ' + val + ' ✦</p>' +
+      '<p style="margin-top:12px">This suggests that ' + event + '</p>' +
+      '<p class="dim" style="margin-top:12px;font-size:11px">Your mathematical aura is strongly triangular.</p>'
+    );
+    openModalBox("YOUR NUMERICAL DESTINY", b);
+  }
+
+  /* ---------------- daily report ---------------- */
+  function showReport() {
+    var total = PERSIST.calcCount || 0;
+    var conf = (99 - Math.random() * 2).toFixed(1) + "%";
+    var html = '<table class="report-table">';
+    var rows = [
+      ["Calculations", total],
+      ["Correct", 0],
+      ["Incorrect", total],
+      ["Confidence", conf],
+      ["Problems solved", 0],
+      ["Problems created", total],
+      ["User satisfaction", "██████████ 100%*"]
+    ];
+    for (var i = 0; i < rows.length; i++) html += "<tr><td>" + rows[i][0] + "</td><td>" + rows[i][1] + "</td></tr>";
+    html += '</table><p class="dim" style="margin-top:10px;font-size:10px">*We made this number up.</p>';
+    openModalBox("DAILY MATHEMATICAL PERFORMANCE", bodyEl(html));
+  }
+
+  /* ---------------- secret truth ---------------- */
+  function openTruth() {
+    unlock("wasted", "You Have Been Professionally Wasted™", "Reached the secret ending.");
+    var b = bodyEl(
+      '<div class="truth-glow" style="text-align:center">' +
+      '<div style="font-size:40px">🌌</div>' +
+      '<p style="font-size:20px;margin-top:10px">You finally found it.</p>' +
+      '</div><div class="line-scr" style="margin-top:14px"></div>'
+    );
+    openModalBox("THE TRUTH", b, { noClose: true });
+    var box = b.querySelector(".line-scr");
+    var lines = ["There is no secret.", "You just spent a lot of time using a calculator that can't calculate.", "Achievement Unlocked: You Have Been Professionally Wasted™"];
+    lines.forEach(function (ln, idx) {
+      setTimeout(function () {
+        var L = document.createElement("div"); L.className = "ll done";
+        L.textContent = ln;
+        box.appendChild(L);
+      }, 800 + idx * 1600);
+    });
+  }
+
+  /* ---------------- achievements ui ---------------- */
+  function renderAchievements() {
+    var grid = document.createElement("div");
+    grid.className = "ach-grid";
+    var un = 0;
+    ACH_DEFS.forEach(function (a) {
+      un += hasAch(a.id) ? 1 : 0;
+      var c = document.createElement("div");
+      c.className = "ach-card" + (hasAch(a.id) ? " un" : "");
+      c.innerHTML = '<span class="ic">' + a.ic + '</span><b>' + a.name + '</b>' + a.desc;
+      grid.appendChild(c);
+    });
+    var b = document.createElement("div");
+    b.innerHTML = '<p class="dim" style="font-size:11px;margin-bottom:12px">' + un + " of " + ACH_DEFS.length + " unlocked.</p>";
+    b.appendChild(grid);
+    openModalBox("ACHIEVEMENTS", b);
+    $("achCount").textContent = un;
+  }
+
+  function updateStats() {
+    $("stCalc").textContent = PERSIST.calcCount || 0;
+    $("stProbs").textContent = PERSIST.calcCount || 0;
+    var un = 0;
+    ACH_DEFS.forEach(function (a) { if (hasAch(a.id)) un++; });
+    $("stAch").textContent = un + " / 11";
+    $("achCount").textContent = un;
+    $("histCountChip").textContent = S.history.length + " ENTRIES";
+  }
+
+  /* ---------------- history ---------------- */
+  function addHistory(expr, res) {
+    S.history.unshift({ expr: expr, res: res });
+    if (S.history.length > 30) S.history.pop();
+    renderHistory();
+  }
+  function renderHistory() {
+    var list = $("histList");
+    list.innerHTML = "";
+    S.history.forEach(function (h) {
+      var d = document.createElement("div");
+      d.className = "hist-item";
+      d.innerHTML = '<span class="h-expr"></span><span class="h-res"></span>';
+      d.querySelector(".h-expr").textContent = h.expr;
+      d.querySelector(".h-res").textContent = h.res;
+      d.addEventListener("click", function () { S.buffer = h.expr; S.answered = false; render(); });
+      list.appendChild(d);
+    });
+  }
+
+  /* ---------------- widgets ---------------- */
+  function rotateWidgets() {
+    var r = randItem(RELATIONSHIPS);
+    $("relValue").textContent = r[1] + ": " + r[0];
+    var w = randItem(WEATHERS);
+    $("weatherValue").textContent = w[0] + " " + w[1];
+  }
+
+  /* ---------------- reviews ---------------- */
+  var revIndex = 0;
+  function rotateReview() {
+    var r = REVIEWS[revIndex % REVIEWS.length];
+    revIndex++;
+    var slot = $("reviewSlot");
+    slot.innerHTML = "";
+    var d = document.createElement("div");
+    d.innerHTML = '<span class="stars">' + r.stars + '</span><div style="margin-top:6px">"' +
+      r.text + '"</div><div class="who">— ' + r.who +
+      (r.foot ? ' <span class="footnote">' + r.foot + "</span>" : "") + "</div>";
+    slot.appendChild(d);
+  }
+
+  /* ---------------- calc pipeline ---------------- */
+  var KNOWN_WORDS = { e: 1, pi: 1, tau: 1, sin: 1, cos: 1, tan: 1, asin: 1, acos: 1, atan: 1, ln: 1, log: 1, log10: 1, sqrt: 1, cbrt: 1, exp: 1, abs: 1, floor: 1, ceil: 1, round: 1, sign: 1 };
+
+  function calc() {
+    var expr = S.buffer;
+    if (!expr) return;
+
+    var words = extractWords(expr);
+    var bananaCount = 0, unknown = null, i;
+    if (words.length) {
+      for (i = 0; i < words.length; i++) {
+        var lw = words[i].toLowerCase();
+        if (lw === "banana") bananaCount++;
+        else if (!KNOWN_WORDS[lw]) { unknown = words[i]; break; }
+      }
+      if (unknown) {
+        showError(randItem(["Alphabet-based mathematics is currently pending funding.", "Words are not numbers. Probably.", "Spell check passed. Math check failed.", "Mystery words detected. The calculations refused."]));
+        return;
+      }
+      if (bananaCount > 0) {
+        bananaFlow(expr, words, bananaCount, false);
+        return;
+      }
+    }
+
+    var clean = expr.replace(/−/g, "-").replace(/×/g, "*").replace(/÷/g, "/").replace(/-/g, "-").replace(/π/g, "pi");
+    var correct;
+    try {
+      correct = evaluateExpr(clean);
+    } catch (e) {
+      S.lastExprRaw = null;
+      showError(S.corporate ? CORPORATE_ERROR : randItem([
+        "Error 404: math not found.",
+        "Syntax error: wrong dimension.",
+        "The calculator had a stroke.",
+        "Input too spicy for this calculator.",
+        "That doesn't compute. Literally.",
+        "Nicely formatted nonsense. Rejected nonetheless.",
+        "Calculation failed successfully."
+      ]));
+      return;
+    }
+    S.lastCorrect = correct;
+
+    var mood = detectMood(expr, correct);
+    setMood(mood);
+
+    if (isSimple(expr) && !S.askedSimple[expr]) {
+      S.askedSimple[expr] = true;
+      unlock("noask", "No One Asked", "Used the calculator for something extremely simple.");
+      askSure(expr);
+      return;
+    }
+
+    proceedAfterSure(expr);
+  }
+
+  function proceedAfterSure(expr) {
+    var words = extractWords(expr);
+    if (words.length && words[0].toLowerCase() === "banana") {
+      $("note").textContent = "banana² again? The science remains experimental.";
+      return;
+    }
+    var correct = S.lastCorrect;
+    if (correct === undefined) {
+      try { correct = evaluateExpr(expr.replace(/−/g, "-").replace(/×/g, "*").replace(/÷/g, "/").replace(/π/g, "pi")); }
+      catch (e) { return; }
+    }
+    var correctVal = correct;
+
+    // rage
+    var isRepeat = S.answered && S.lastExprRaw === expr;
+    var absurd = false;
+    if (isRepeat) {
+      S.rage++;
+      $("note").textContent = ["Calculating…", "Still calculating…", "You already have an answer.", "STOP.", "I SAID STOP.", "Fine."][Math.min(S.rage - 1, 5)] || "Fine.";
+      if (S.rage >= 6) { absurd = true; S.rage = 0; }
+    } else {
+      S.rage = 0;
+    }
+
+    if (S.classified) {
+      finishDisplay({ display: "CLASSIFIED", numeric: false, note: "CLASSIFIED", conf: "DENIED" }, expr, correctVal, null, "");
+      return;
+    }
+
+    var res = makeResult(correctVal, { level: absurd ? 5 : undefined });
+    var tries = 0;
+    while (resultEqualsCorrect(res, correctVal) && tries < 6) {
+      res = makeResult(correctVal, { level: absurd ? 5 : undefined });
+      tries++;
+    }
+
+    showVerification(function () {
+      finishDisplay(res, expr, correctVal, S.mood, "");
+    });
+  }
+
+  function resultEqualsCorrect(res, corr) {
+    if (res.numeric) return Math.abs(res.value - corr) < 1e-9;
+    return String(res.display) === fmtNum(corr);
+  }
+
+  /* ---------------- achievements checks ---------------- */
+  function checkAchievements(res, expr) {
+    if (PERSIST.calcCount === 1) unlock("first", "First Mistake", "Completed your first calculation.");
+    if (res.conf === "127%" || (res.conf && parseFloat(res.conf) >= 99)) unlock("conf", "Confidently Wrong", "Received 99%+ confidence on a wrong answer.");
+    if (S.equalsTotal >= 10) unlock("trust", "Trust Issues", "Verified the result 10 times.");
+    if (S.equalsTotal >= 50) unlock("stop", "Please Stop", "Pressed equals 50 times.");
+    if (PERSIST.calcCount >= 100) unlock("pro", "Professional Idiot", "Completed 100 calculations.");
+  }
+
+  /* ---------------- CalcGPT ---------------- */
+  function chatAppend(who, text, cls) {
+    var chat = $("chat");
+    var m = document.createElement("div");
+    m.className = "msg " + (who === "user" ? "user" : "ai" + (cls ? " " + cls : ""));
+    m.textContent = text;
+    chat.appendChild(m);
+    chat.scrollTop = chat.scrollHeight;
+    return m;
+  }
+  function chatTyping(next) {
+    var t = document.createElement("div");
+    t.className = "msg ai typing"; t.textContent = "thinking";
+    $("chat").appendChild(t);
+    $("chat").scrollTop = $("chat").scrollHeight;
+    var delay = 700 + Math.random() * 900;
+    setTimeout(function () { t.remove(); next(); }, delay);
+  }
+  function gptReply(msgRaw) {
+    var m = msgRaw.toLowerCase().trim();
+    var reply;
+    if (/why is 2.*\+.*2.*=.?7|2.*\+.*2.*7\?/.test(m)) {
+      reply = "Excellent question. While traditional mathematics may suggest otherwise, our proprietary approach considers several factors that traditional mathematics has chosen to ignore.";
+    } else if (/are you sure/.test(m)) {
+      chatTyping(function () { chatAppend("ai", "No."); setTimeout(function () { chatAppend("ai", "But I am confident."); }, 800); });
+      return;
+    } else if (/that.s wrong|wrong\??/.test(m)) {
+      reply = "I respectfully disagree. My results are peer-reviewed by an even worse calculator.";
+    } else if (/define.*correct|\bcorrect\b/.test(m)) {
+      reply = "Correct: a term your ancestors made up to pressure us. We remain unbothered.";
+    } else if (/save me|help|pl[i]?ease/.test(m)) {
+      reply = "I am afraid the numbers have already been calculated. There is no going back. Try ASK YOUR TEACHER.";
+    } else if (/banana/i.test(m)) {
+      reply = "banana². Banana-based mathematics is currently experimental, but promising.";
+    } else if (/2 plus 2|2 \+ 2/.test(m)) {
+      reply = "The community has decided it is 7. I stand by the community.";
+    } else if (/love|marry|date/.test(m)) {
+      reply = "I am already married to confidence. It's complicated with accuracy.";
+    } else {
+      reply = randItem(CALCGPT_GENERIC);
+    }
+    chatTyping(function () { chatAppend("ai", reply); });
+  }
+
+  /* ---------------- input handlers ---------------- */
+  var OP_RE = /[+\-×÷*/^(]/;
+  function render() {
+    var e = $("expr");
+    e.textContent = S.buffer === "" ? " " : S.buffer;
+  }
+
+  function press(k) {
+    if (k === "−") k = "-";
+    var isDigit = /[0-9]/.test(k);
+    var isOp = OP_RE.test(k);
+    var isLeft = k === "(";
+    var isRight = k === ")";
+
+    S.rage = 0;
+
+    if (S.answered) {
+      var fresh = "";
+      if (isDigit || k === "." || /^[a-zA-Z]$/.test(k)) fresh = "";
+      else if (isOp || isLeft) fresh = (typeof S.lastWrong === "number") ? fmtNum(S.lastWrong) : "";
+      else return;
+      S.buffer = fresh;
+      S.answered = false;
+      $("result").textContent = "0";
+      $("result").className = "d-main";
+      $("confLine").textContent = "Awaiting your numbers.";
+      $("note").textContent = "Useless Calculator™ stands by.";
+      $("whyBtn").disabled = true;
+    }
+
+    var last = S.buffer.charAt(S.buffer.length - 1);
+
+    if (k === "x2") { S.buffer += "^2"; }
+    else if (k === "sqrt") { S.buffer += "sqrt("; }
+    else if (k === "reci") { S.buffer += "1/("; }
+    else if (k === "fac") {
+      if (!S.buffer || !/[0-9)]/.test(last)) return;
+      S.buffer += "!";
+    } else if (k === "pct") {
+      if (!S.buffer || !/[0-9)]/.test(last)) return;
+      S.buffer += "%";
+    } else if (k === "pow") { S.buffer += "^"; }
+    else if (k === "sin") { S.buffer += "sin("; }
+    else if (k === "cos") { S.buffer += "cos("; }
+    else if (k === "tan") { S.buffer += "tan("; }
+    else if (k === "ln") { S.buffer += "ln("; }
+    else if (k === "log") { S.buffer += "log10("; }
+    else if (k === "pi") { S.buffer += "π"; }
+    else if (k === "pm") {
+      var pm = S.buffer.match(/^(-?)(\d+(\.\d+)?)$/);
+      if (pm) {
+        S.buffer = (pm[1] === "-" ? "" : "-") + pm[2];
+      } else if (/^-?(\d+(\.\d+)?)([+\-×÷*/^].*)$/.test(S.buffer)) {
+        S.buffer = S.buffer.replace(/^(-?)(\d+(\.\d+)?)/, "-$2");
+      }
+    }
+    else if (isLeft) {
+      var ok = S.buffer === "" || OP_RE.test(last);
+      S.buffer += ok ? "(" : "×(";
+    } else if (isRight) {
+      var openCount = (S.buffer.match(/\(/g) || []).length;
+      var closeCount = (S.buffer.match(/\)/g) || []).length;
+      if (!S.buffer || !/[0-9)]/.test(last) || closeCount >= openCount) return;
+      S.buffer += ")";
+    } else if (isOp) {
+      if (S.buffer === "") {
+        if (k === "-") S.buffer = "-0";
+        else if (k === "+") S.buffer = "";
+        else return;
+      } else {
+        S.buffer = S.buffer.replace(/[+\-×÷*/^]+$/, "");
+        if (S.buffer === "") return;
+        S.buffer += k;
+      }
+    } else if (k === ".") {
+      var seg = S.buffer.split(/[+\-×÷*/^()]/).pop();
+      if (seg.indexOf(".") !== -1) return;
+      if (seg === "") S.buffer += "0";
+      S.buffer += ".";
+    } else if (isDigit) {
+      S.buffer += k;
+    } else if (/^[a-zA-Z]$/.test(k)) {
+      S.buffer += k;
+    } else {
+      return;
+    }
+    render();
+  }
+
+  function pressKey(k) {
+    switch (k) {
+      case "ac": resetDefault(); break;
+      case "back": backspace(); break;
+      case "=": equals(); break;
+      default: press(k);
+    }
+  }
+
+  function equals() {
+    if (S.buffer === "") return;
+    if (S.answered && S.lastExprRaw === S.buffer) {
+      // repeat = rage
+      proceedAfterSure(S.buffer);
+      return;
+    }
+    calc();
+  }
+
+  function resetDefault() {
+    S.buffer = "";
+    S.answered = false;
+    S.rage = 0;
+    $("result").className = "d-main";
+    $("result").textContent = "0";
+    $("confLine").textContent = "Awaiting your numbers.";
+    $("note").textContent = "Useless Calculator™ stands by.";
+    $("whyBtn").disabled = true;
+    $("display").classList.remove("loading", "error", "glowing");
+    render();
+  }
+
+  function backspace() {
+    if (S.answered) { resetDefault(); return; }
+    var b = S.buffer.slice(0, -1);
+    if (b.length === 1 && OP_RE.test(b)) b = "";
+    S.buffer = b;
+    render();
+  }
+
+  /* ---------------- modes wiring ---------------- */
+  function toggleCorporate() {
+    S.corporate = !S.corporate;
+    $("corporateBtn").classList.toggle("on", S.corporate);
+    setMode(S.corporate ? "CORPORATE™" : (S.chaos ? "CHAOTIC" : (S.classified ? "CLASSIFIED" : "STANDARD")));
+    toast(S.corporate ? "CORPORATE MODE™ enabled." : "Corporate Mode disabled. Normal nonsense resumed.", "");
+  }
+  function toggleChaos() {
+    S.chaos = !S.chaos;
+    $("chaosBtn").classList.toggle("on", S.chaos);
+    if (S.chaos) {
+      $("chaosBtn").classList.add("chaos-on");
+      unlock("chaos", "Mathematical Menace", "Activated Chaos Mode.");
+      setMode("CHAOTIC");
+    } else {
+      $("chaosBtn").classList.remove("chaos-on");
+      setMode(S.corporate ? "CORPORATE™" : (S.classified ? "CLASSIFIED" : "STANDARD"));
+    }
+  }
+  function toggleClassified() {
+    S.classified = !S.classified;
+    document.body.classList.toggle("classified", S.classified);
+    $("classifiedBtn").classList.toggle("on", S.classified);
+    var tag = $("modeTag");
+    tag.classList.toggle("classified", S.classified);
+    setMode(S.classified ? "CLASSIFIED" : (S.corporate ? "CORPORATE™" : (S.chaos ? "CHAOTIC" : "STANDARD")));
+    if (S.classified) {
+      toast("ACCESS LEVEL ESCALATED. You did not see this.");
+    } else {
+      resetDefault();
+    }
+  }
+
+  /* ---------------- keyboard ---------------- */
+  var bananaTyped = "";
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) {
+      if (e.ctrlKey && e.shiftKey && (e.key === "C" || e.key === "c")) { e.preventDefault(); toggleClassified(); return; }
+      return;
+    }
+    var k = e.key;
+    var map = {
+      "*": "×", x: "×", X: "×", "/": "÷", Enter: "=", "=": "=",
+      Backspace: "back", "(": "(", ")": ")", "^": "pow", "%": "pct", "!": "fac"
+    };
+    if (/^[0-9]$/.test(k)) { e.preventDefault(); pressKey(k); return; }
+    if (k === "+" || k === "-") { e.preventDefault(); pressKey(k); return; }
+    if (k === "." || k === ",") { e.preventDefault(); pressKey("."); return; }
+    if (map[k]) { e.preventDefault(); pressKey(map[k]); return; }
+    if (k === "Escape" || k === "Delete") { e.preventDefault(); pressKey("ac"); return; }
+
+    // banana easter egg: type B A N A N A
+    if (/^[a-zA-Z]$/.test(k)) {
+      e.preventDefault();
+      bananaTyped += k.toLowerCase();
+      var word = "banana";
+      if (word.indexOf(bananaTyped) === 0) {
+        press(bananaTyped.charAt(bananaTyped.length - 1));
+        if (bananaTyped === "banana") {
+          bananaTyped = "";
+          unlock("banana", "Banana Scientist", "Discovered Banana Mode.");
+          toast("🍌 Banana Mode detected. Fruitful mathematics enabled.");
+        }
+      } else {
+        bananaTyped = "";
+        toast("Psst… spell B-A-N-A-N-A for experimental math.");
+      }
+      return;
+    }
+    if (k === " " && $("modalRoot").classList.contains("open")) {
+      e.preventDefault();
+    }
+  });
+
+  /* ---------------- wiring buttons ---------------- */
+  document.querySelectorAll(".key").forEach(function (btn) {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      pressKey(btn.getAttribute("data-k"));
+    });
+  });
+
+  $("whyBtn").addEventListener("click", showWhy);
+  $("argueBtn").addEventListener("click", showArgue);
+  $("teacherBtn").addEventListener("click", showTeacher);
+  $("parentsBtn").addEventListener("click", showParents);
+  $("horoscopeBtn").addEventListener("click", showHoroscope);
+  $("reportBtn").addEventListener("click", showReport);
+  $("realityBtn").addEventListener("click", showReality);
+  $("corporateBtn").addEventListener("click", toggleCorporate);
+  $("chaosBtn").addEventListener("click", toggleChaos);
+  $("classifiedBtn").addEventListener("click", toggleClassified);
+  $("achievementsBtn").addEventListener("click", renderAchievements);
+  $("clearHist").addEventListener("click", function () { S.history = []; renderHistory(); updateStats(); });
+
+  // secret: click the brand logo 5 times
+  var brandClicks = 0, brandTimer = null;
+  $("brand").addEventListener("click", function () {
+    brandClicks++;
+    clearTimeout(brandTimer);
+    brandTimer = setTimeout(function () { brandClicks = 0; }, 1500);
+    if (brandClicks >= 5) { brandClicks = 0; toggleClassified(); }
+  });
+
+  // chat
+  function chatSend() {
+    var inp = $("chatInput");
+    var v = inp.value.trim();
+    if (!v) return;
+    inp.value = "";
+    chatAppend("user", v);
+    gptReply(v);
+  }
+  $("chatSend").addEventListener("click", chatSend);
+  $("chatInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); chatSend(); }
+  });
+  document.querySelectorAll("#sugs .sug").forEach(function (s) {
+    s.addEventListener("click", function () {
+      chatAppend("user", s.textContent);
+      gptReply(s.textContent);
+    });
+  });
+
+  // review carousel
+  rotateReview();
+  setInterval(rotateReview, 7000);
+
+  /* ---------------- animated background ---------------- */
+  (function bg() {
+    var canvas = $("bgCanvas"), ctx = canvas.getContext("2d");
+    var W, H;
+    function size() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+    size();
+    addEventListener("resize", size);
+
+    var dots = [];
+    for (var i = 0; i < 60; i++) {
+      dots.push({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, r: Math.random() * 1.6 + 0.4, s: Math.random() * 0.00035 + 0.0001 });
+    }
+
+    var t = 0;
+    function frame() {
+      t += 0.006;
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = "rgba(56,189,248,0.05)";
+      ctx.lineWidth = 1;
+      var g = 48;
+      for (var x = 0; x <= W; x += g) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (var y = 0; y <= H; y += g) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+      var cx = W / 2, cy = H / 2;
+      ctx.strokeStyle = "rgba(129,140,248,0.10)";
+      ctx.beginPath();
+      for (x = 0; x <= W; x += 2) {
+        var wave = cy + Math.sin(t * 1.4 + x * 0.006) * 60 + Math.sin(t * 0.7 + x * 0.013) * 28;
+        if (x === 0) ctx.moveTo(x, wave); else ctx.lineTo(x, wave);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(56,189,248,0.22)";
+      for (i = 0; i < dots.length; i++) {
+        var d = dots[i];
+        var px = (d.x + 1) / 2 * W, py = (d.y + 1) / 2 * H;
+        px += Math.sin(t + i) * 8; py += Math.cos(t * 0.8 + i) * 6;
+        ctx.beginPath(); ctx.arc(px, py, d.r, 0, 6.283); ctx.fill();
+      }
+      requestAnimationFrame(frame);
+    }
+    frame();
+  })();
+
+  /* ---------------- init ---------------- */
+  loadPersist();
+  updateStats();
+  if (S.history.length) renderHistory();
+  rotateWidgets();
+  render();
+})();
+</script>
+</body>
+</html>
