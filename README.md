@@ -27,8 +27,6 @@ It takes user input and turns simple calculations into confusing, incorrect, and
 ### Technologies/Components Used
 For Software:
 - html
-- none
-- none
 - visual studio code, web browser, github.
 
 ### Implementation
